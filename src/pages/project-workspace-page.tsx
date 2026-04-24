@@ -1,11 +1,11 @@
-import { User, Project } from '../App';
+import { User, ProjectDto } from '../types';
 import { ProjectWorkspace } from '../components/project-workspace';
 import { useParams, useNavigate, Navigate } from 'react-router';
 
 interface ProjectWorkspacePageProps {
   currentUser: User;
-  projects: Project[];
-  onUpdateProject: (project: Project) => void;
+  projects: ProjectDto[];
+  onUpdateProject: (project: ProjectDto) => void;
 }
 
 export default function ProjectWorkspacePage({

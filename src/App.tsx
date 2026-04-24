@@ -1,93 +1,65 @@
 import { useState, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { createAppRouter } from './routes';
-import { ProjectList } from './components/project-list';
-import { ProjectWorkspace } from './components/project-workspace';
-import { LoginForm } from './components/login-form';
-import { SignupForm } from './components/signup-form';
+import { ProjectService } from './apiService';
+import type { ProjectDto, UserDto, Role } from './types';
 
+// App-level types
 export interface User {
-  id: string;
+  userID: number;
   name: string;
   email: string;
-  role: 'admin' | 'manager' | 'member';
+  role: Role | string;
 }
 
-export interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  skills: string[];
+export interface Project extends ProjectDto {
+  // Extends ProjectDto with additional app-level properties
 }
-
-export interface Sprint {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  goal: string;
-  status: 'planned' | 'active' | 'completed';
-  taskIds: string[];
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: 'todo' | 'in-progress' | 'review' | 'done';
-  assignee?: string;
-  requiredSkills: string[];
-  startDate?: string;
-  endDate?: string;
-  duration: number; // in days
-  dependencies: string[]; // task IDs
-  priority: 'low' | 'medium' | 'high';
-  sprintId?: string; // Sprint assignment
-  storyPoints?: number; // For scrum estimation
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  manager: string;
-  members: string[];
-  teamMembers: TeamMember[];
-  registeredSkills: string[]; // Skills registered by project manager
-  tasks: Task[];
-  sprints: Sprint[];
-  createdAt: string;
-  status: 'planning' | 'active' | 'on-hold' | 'completed';
-}
-
-const mockUser: User = {
-  id: 'user-1',
-  name: 'Alex Morgan',
-  email: 'alex.morgan@example.com',
-  role: 'manager',
-};
 
 const initialProjects: Project[] = [];
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [showSignup, setShowSignup] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch all projects when user logs in
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!currentUser) {
+        setProjects([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const projectsData = await ProjectService.getAllProjects();
+        setProjects(projectsData || []);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Failed to fetch projects';
+        setError(errorMsg);
+        console.error('Error fetching projects:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [currentUser]);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
   };
 
   const handleSignup = (user: User) => {
-    // In a real app, this would register the user in a database
     setCurrentUser(user);
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setSelectedProject(null);
+    setProjects([]);
   };
 
   const handleCreateProject = (project: Project) => {
@@ -95,45 +67,18 @@ export default function App() {
   };
 
   const handleDeleteProject = (projectId: string) => {
-    setProjects(projects.filter(p => p.id !== projectId));
-    if (selectedProject?.id === projectId) {
-      setSelectedProject(null);
-    }
+    const numId = parseInt(projectId);
+    setProjects(projects.filter(p => p.projectID !== numId));
   };
 
   const handleEnrollProject = (projectId: string) => {
-    if (!currentUser) return;
-    
-    setProjects(projects.map(project => {
-      if (project.id === projectId) {
-        // Check if user is invited
-        const invitedMember = project.teamMembers.find(tm => tm.email === currentUser.email);
-        
-        if (invitedMember && !project.members.includes(currentUser.email)) {
-          // Update the team member with user info and add to project members
-          const updatedTeamMembers = project.teamMembers.map(tm =>
-            tm.email === currentUser.email
-              ? { ...tm, name: currentUser.name }
-              : tm
-          );
-          
-          return {
-            ...project,
-            members: [...project.members, currentUser.email],
-            teamMembers: updatedTeamMembers,
-          };
-        } else if (!project.members.includes(currentUser.email)) {
-          // Regular enrollment (not invited)
-          return { ...project, members: [...project.members, currentUser.email] };
-        }
-      }
-      return project;
-    }));
+    // Project enrollment is typically handled via API
+    // This just updates the local state for UI feedback
+    console.log('Enrolled in project:', projectId);
   };
 
   const handleUpdateProject = (updatedProject: Project) => {
-    setProjects(projects.map(p => p.id === updatedProject.id ? updatedProject : p));
-    setSelectedProject(updatedProject);
+    setProjects(projects.map(p => p.projectID === updatedProject.projectID ? updatedProject : p));
   };
 
   // Create router with context

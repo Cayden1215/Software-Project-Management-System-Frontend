@@ -13,8 +13,8 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<Task['status'] | 'all'>('all');
-  const [filterPriority, setFilterPriority] = useState<Task['priority'] | 'all'>('all');
+  const [filterStatus, setFilterStatus] = useState<string | 'all'>('all');
+  const [filterPriority, setFilterPriority] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'priority-high' | 'priority-low' | 'date-asc' | 'date-desc'>('date-desc');
 
   const handleSaveTask = (task: Task) => {
@@ -50,7 +50,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
     setShowTaskModal(true);
   };
 
-  const getPriorityColor = (priority: Task['priority']) => {
+  /*const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
       case 'high':
         return 'bg-red-100 text-red-700';
@@ -59,9 +59,9 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
       case 'low':
         return 'bg-green-100 text-green-700';
     }
-  };
+  };*/
 
-  const getStatusColor = (status: Task['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'done':
         return 'bg-green-100 text-green-700';
@@ -74,7 +74,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
     }
   };
 
-  const getStatusLabel = (status: Task['status']) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case 'done':
         return 'Done';
@@ -191,7 +191,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
           <div>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as Task['status'] | 'all')}
+              onChange={(e) => setFilterStatus(e.target.value as 'todo' | 'in-progress' | 'review' | 'done' | 'all')}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Statuses</option>
@@ -206,7 +206,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
           <div>
             <select
               value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value as Task['priority'] | 'all')}
+              onChange={(e) => setFilterPriority(e.target.value as 'low' | 'medium' | 'high' | 'all')}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Priorities</option>
@@ -235,7 +235,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
       {/* Tasks List */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-gray-900">
+          <h3 className="text-gray-900 font-semibold">
             All Tasks ({filteredTasks.length})
           </h3>
         </div>
@@ -263,10 +263,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h4 className="text-gray-900">{task.title}</h4>
-                        <span className={`px-2 py-1 rounded text-xs ${getPriorityColor(task.priority)}`}>
-                          {task.priority}
-                        </span>
+                        <h4 className="text-gray-900 font-medium">{task.title}</h4>
                         <span className={`px-2 py-1 rounded text-xs ${getStatusColor(task.status)}`}>
                           {getStatusLabel(task.status)}
                         </span>
@@ -381,7 +378,7 @@ export function TaskManagement({ project, isManager, onUpdateProject }: TaskMana
           project={project}
           isManager={isManager}
           onSave={handleSaveTask}
-          onDelete={editingTask ? handleDeleteTask : undefined}
+          onDelete={editingTask ? () => handleDeleteTask(editingTask.id) : undefined}
           onClose={() => {
             setShowTaskModal(false);
             setEditingTask(null);

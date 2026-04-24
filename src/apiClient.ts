@@ -7,7 +7,8 @@ import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 
 // Create axios instance with base URL from environment variable
 const apiClient: AxiosInstance = axios.create({
-  baseURL:'http://localhost:8080/api',
+  baseURL:'http://localhost:8080/',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

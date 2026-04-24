@@ -22,17 +22,29 @@ export default function DashboardPage({
   const navigate = useNavigate();
 
   const handleSelectProject = (project: Project) => {
-    navigate(`/projects/${project.id}`);
+    navigate(`/projects/${project.projectID}`);
+  };
+
+  const handleEnrollProject = (projectId: number) => {
+    onEnrollProject(projectId.toString());
+  };
+
+  const handleCreateProject = (project: Project) => {
+    onCreateProject(project);
+  };
+
+  const handleDeleteProject = (projectId: number) => {
+    onDeleteProject(projectId.toString());
   };
 
   return (
     <ProjectList
-      projects={projects}
       currentUser={currentUser}
+      projects={projects}
       onSelectProject={handleSelectProject}
-      onEnrollProject={onEnrollProject}
-      onCreateProject={onCreateProject}
-      onDeleteProject={onDeleteProject}
+      onEnrollProject={handleEnrollProject}
+      onCreateProject={handleCreateProject}
+      onDeleteProject={handleDeleteProject}
       onLogout={onLogout}
     />
   );

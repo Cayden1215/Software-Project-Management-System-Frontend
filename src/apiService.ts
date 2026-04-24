@@ -5,11 +5,13 @@ import {
   UserDto,
   User,
   ProjectDto,
+  Project,
   ProjectMemberDto,
   SprintDto,
   TaskAssignmentDto,
   SkillDto,
   ProjectMemberSkillDto,
+  Role,
 } from './types';
 
 // ==========================================
@@ -29,6 +31,7 @@ export const AuthService = {
   authenticate: async (data: AuthenticationRequest): Promise<AuthenticationResponse | null> => {
     try {
       const response = await apiClient.post<AuthenticationResponse>('/api/auth/login', data);
+      localStorage.setItem('authToken', response.data.token); // Store token for future requests
       return response.data;
     } catch (error) {
       console.error('Error authenticating user:', error);
@@ -108,6 +111,26 @@ export const ProjectService = {
       throw error;
     }
   },
+};
+
+// ==========================================
+// CONVERSION UTILITIES
+// ==========================================
+export const convertProjectDtoToProject = (dto: ProjectDto): Project => {
+  return {
+    projectID: dto.projectID,
+    projectName: dto.projectName,
+    projectDescription: dto.projectDescription,
+    startDate: dto.startDate,
+    deadline: dto.deadline,
+    projectStatus: dto.projectStatus,
+    projectManager: {
+      userID: dto.projectManagerID,
+      name: '',
+      email: '',
+      role: Role.PROJECT_MANAGER,
+    },
+  };
 };
 
 // ==========================================

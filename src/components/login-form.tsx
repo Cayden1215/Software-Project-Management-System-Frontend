@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { User } from '../App';
+import { User } from '../types';
 import { LogIn, UserCircle, Shield } from 'lucide-react';
+import { AuthService } from '../apiService';
 
 interface LoginFormProps {
-  onLogin: (user: User) => void;
+  onLogin: (token: string) => void;
   onSwitchToSignup: () => void;
 }
 
@@ -12,8 +13,11 @@ export function LoginForm({ onLogin, onSwitchToSignup }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [selectedRole, setSelectedRole] = useState<'manager' | 'member'>('manager');
+  // New state variables for real API handling
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !name) {
@@ -21,15 +25,27 @@ export function LoginForm({ onLogin, onSwitchToSignup }: LoginFormProps) {
       return;
     }
 
-    // Create user object
-    const user: User = {
-      id: `user-${Date.now()}`,
-      name,
-      email,
-      role: selectedRole,
-    };
 
-    onLogin(user);
+    setIsLoading(true);
+
+    try {
+      // 1. Call your Axios API service
+      // Assuming AuthenticationRequest takes { email, password }
+      const response = await AuthService.authenticate({ email, password });
+
+      if (response) {
+        // 2. Pass the authenticated user data to the parent component
+        // Assuming your AuthenticationResponse includes a 'user' object
+        onLogin(response.token); 
+      }
+    } catch (err: any) {
+      // 3. Handle errors (e.g., 401 Unauthorized, 500 Server Error)
+      const errorMessage = err.response?.data?.message || 'Invalid email or password. Please try again.';
+      setError(errorMessage);
+    } finally {
+      // 4. Stop the loading spinner whether it succeeded or failed
+      setIsLoading(false);
+    }
   };
 
   return (
